@@ -18,7 +18,7 @@ func (e entry) String() string {
 	return fmt.Sprintf("%v %v", e.Timestamp, e.Info)
 }
 
-var entryFormat = regexp.MustCompile(`(?m)\[(.*)\](.*)`)
+var entryFormat = regexp.MustCompile(`(?m)\[(.*)](.*)`)
 
 func Solve(lines []string, partOne bool) string {
 	var entries []entry
