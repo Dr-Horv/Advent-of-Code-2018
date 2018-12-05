@@ -3,7 +3,6 @@ package day05
 import (
 	"fmt"
 	"math"
-	"strings"
 	"unicode"
 )
 
@@ -31,9 +30,7 @@ func Solve(lines []string, partOne bool) string {
 
 	task := func(upper rune) string {
 		lower := unicode.ToLower(upper)
-		newInput := strings.Replace(input, string(upper), "", -1)
-		newCandidate := strings.Replace(newInput, string(lower), "", -1)
-		newCandidate = getNewCandidate(input, upper, lower)
+		newCandidate := getNewCandidate(input, upper, lower)
 		stable := react(newCandidate)
 		return stable
 	}
