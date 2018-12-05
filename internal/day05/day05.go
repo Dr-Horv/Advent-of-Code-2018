@@ -19,7 +19,7 @@ func Solve(lines []string, partOne bool) string {
 
 	input := lines[0]
 	if partOne {
-		s := react(input)
+		s := process(input)
 		return fmt.Sprint(len(s))
 	}
 
@@ -31,7 +31,7 @@ func Solve(lines []string, partOne bool) string {
 	task := func(upper rune) string {
 		lower := unicode.ToLower(upper)
 		newCandidate := getNewCandidate(input, upper, lower)
-		stable := react(newCandidate)
+		stable := process(newCandidate)
 		return stable
 	}
 
@@ -82,49 +82,19 @@ func getNewCandidate(input string, upper rune, lower rune) string {
 	return string(next)
 }
 
-func equal(a, b []rune) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func react(input string) string {
-	s := []rune(input)
-	for {
-		nextS := process(s)
-
-		if equal(nextS, s) {
-			break
-		}
-
-		s = nextS
-	}
-	return string(s)
-}
-
-func process(runes []rune) []rune {
-	var next []rune
-	removedLast := false
-	for i := 0; i < (len(runes) - 1); i++ {
+func process(input string) string {
+	runes := []rune(input)
+	for i := 0; i < (len(runes) - 2); {
 		// compare if two runes have different case i.e. a and A or B and b.
 		if runes[i]^runes[i+1] == 32 {
-			i++
-			removedLast = true
+			runes = append(runes[:i], runes[i+2:]...)
+			if i > 0 {
+				i--
+			}
 			continue
 		}
-		removedLast = false
-		next = append(next, runes[i])
+		i++
 	}
 
-	if !removedLast {
-		next = append(next, runes[len(runes)-1])
-	}
-
-	return next
+	return string(runes)
 }
