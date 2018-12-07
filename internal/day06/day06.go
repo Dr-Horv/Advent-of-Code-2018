@@ -2,7 +2,7 @@ package day06
 
 import (
 	"fmt"
-	. "github.com/Dr-Horv/Advent-of-Code-2018/internal/pkg"
+	. "github.com/dr-horv/advent-of-code-2018/internal/pkg"
 	"math"
 )
 

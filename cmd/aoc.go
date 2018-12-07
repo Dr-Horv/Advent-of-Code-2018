@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/Dr-Horv/Advent-of-Code-2018/internal/day06"
-	"github.com/Dr-Horv/Advent-of-Code-2018/internal/pkg"
+	"github.com/dr-horv/advent-of-code-2018/internal/day07"
+	"github.com/dr-horv/advent-of-code-2018/internal/pkg"
 	"time"
 )
 
 func main() {
-	var day = "06"
+	var day = "07"
 	lines := pkg.ReadFile("./internal/day" + day + "/input")
 	start := time.Now()
-	answer := day06.Solve(lines, false)
+	answer := day07.Solve(lines, false)
 	t := time.Now()
 	elapsed := t.Sub(start)
 	fmt.Println(answer)
