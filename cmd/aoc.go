@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/dr-horv/advent-of-code-2018/internal/day06"
-	"github.com/dr-horv/advent-of-code-2018/internal/pkg"
+	"github.com/Dr-Horv/Advent-of-Code-2018/internal/day06"
+	"github.com/Dr-Horv/Advent-of-Code-2018/internal/pkg"
 	"time"
 )
 
