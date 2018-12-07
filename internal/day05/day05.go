@@ -23,6 +23,7 @@ func Solve(lines []string, partOne bool) string {
 		return fmt.Sprint(len(s))
 	}
 
+	input = process(input)
 	unitTypes := make(map[rune]bool)
 	messages := make(chan string, 100)
 	jobs := make(chan rune, 100)
