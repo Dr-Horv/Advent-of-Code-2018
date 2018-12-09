@@ -2,46 +2,43 @@ package day09
 
 import (
 	"fmt"
-	"time"
+	"github.com/dr-horv/advent-of-code-2018/internal/pkg"
 )
 
-func Solve(lines []string, partOne bool) string {
+type marble struct {
+	Value int
+	Next  *marble
+	Prev  *marble
+}
 
-	start := time.Now()
-	curr := 1
-	circle := make([]int, 2)
-	circle[0] = 0
-	circle[1] = 1
+func Solve(lines []string, partOne bool) string {
+	curr := &marble{0, nil, nil}
+	curr.Next = curr
+	curr.Prev = curr
 	player := 1
 	numberOfPlayers := 418
-	lastMarble := 71339 * 100
+	lastMarble := 71339
+	if !partOne {
+		lastMarble *= 100
+	}
 	scores := make(map[int]int, numberOfPlayers)
-	for i := 2; i <= lastMarble; i++ {
+	//first := curr
+	for i := 1; i <= lastMarble; i++ {
 
 		if i%23 == 0 {
-			indexToRemove := getIndex(curr-7, circle)
-			e := circle[indexToRemove]
-			scores[player] = scores[player] + e + i
-			circle = removeElement(indexToRemove, circle)
-			curr = indexToRemove
+			r, n := remove(-7, curr)
+			scores[player] = scores[player] + r.Value + i
+			curr = n
 		} else {
-			placeIndex := getIndex(curr+1, circle) + 1
-			circle = addElement(placeIndex, i, circle)
-			if placeIndex <= curr {
-				curr++
-			}
-
-			if getIndex(placeIndex+2, circle) == curr || getIndex(placeIndex-2, circle) == curr {
-				curr = placeIndex
+			newMarble := &marble{i, nil, nil}
+			add(1, curr, newMarble)
+			if newMarble.Next.Next.Value == curr.Value || newMarble.Prev.Prev.Value == curr.Value || i == 1 {
+				curr = newMarble
 			}
 		}
 
-		//printGame(circle, curr, player)
-		if i%100000 == 0 {
-			t := time.Now()
-			elapsed := t.Sub(start)
-			fmt.Printf("Progress %v in %v\n", float64(i)/float64(lastMarble), elapsed)
-		}
+		//printGame(first, curr, player)
+
 		player = (player + 1) % numberOfPlayers
 	}
 
@@ -55,32 +52,63 @@ func Solve(lines []string, partOne bool) string {
 	return fmt.Sprint(maxScore)
 }
 
-func printGame(circle []int, current int, player int) {
+func printGame(first *marble, current *marble, player int) {
 	info := fmt.Sprintf("[%v]", player+1)
-	for i, n := range circle {
+	firstIteration := true
+	m := first
+	for {
 		info += " "
-		if current == i {
-			info += fmt.Sprintf("(%v)", n)
+		if !firstIteration && m.Value == first.Value {
+			break
+		}
+		if current.Value == m.Value {
+			info += fmt.Sprintf("(%v)", m.Value)
 		} else {
 
-			info += fmt.Sprintf(" %v ", n)
+			info += fmt.Sprintf(" %v ", m.Value)
 		}
+
+		m = m.Next
+		firstIteration = false
 	}
 	fmt.Println(info)
 }
 
-func getIndex(index int, slice []int) int {
-	return (index + len(slice)) % len(slice)
+func add(steps int, start *marble, element *marble) {
+	curr := move(steps, start)
+	next := curr.Next
+
+	curr.Next = element
+	element.Prev = curr
+	element.Next = next
+	next.Prev = element
 }
 
-func removeElement(index int, slice []int) []int {
-	return append(slice[:index], slice[index+1:]...)
+func remove(steps int, start *marble) (*marble, *marble) {
+	curr := move(steps, start)
+
+	prev := curr.Prev
+	next := curr.Next
+
+	prev.Next = next
+	next.Prev = prev
+
+	return curr, next
 }
 
-func addElement(index int, element int, slice []int) []int {
-	slice = append(slice, 0)
-	copy(slice[index+1:], slice[index:])
-	slice[index] = element
-
-	return slice
+func move(steps int, start *marble) *marble {
+	move := func(m *marble) *marble {
+		return m.Next
+	}
+	if steps < 0 {
+		move = func(m *marble) *marble {
+			return m.Prev
+		}
+	}
+	curr := start
+	steps = pkg.Abs(steps)
+	for i := 0; i < steps; i++ {
+		curr = move(curr)
+	}
+	return curr
 }
