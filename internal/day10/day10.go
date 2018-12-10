@@ -45,9 +45,8 @@ func Solve(lines []string, partOne bool) string {
 			prints++
 		}
 
-		for i, s := range signals {
+		for _, s := range signals {
 			s.Position = Coordinate{X: s.Position.X + s.DX, Y: s.Position.Y + s.DY}
-			signals[i] = s
 		}
 		loops++
 	}
