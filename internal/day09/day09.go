@@ -32,9 +32,7 @@ func Solve(lines []string, partOne bool) string {
 		} else {
 			newMarble := &marble{i, nil, nil}
 			add(1, curr, newMarble)
-			if newMarble.Next.Next.Value == curr.Value || newMarble.Prev.Prev.Value == curr.Value || i == 1 {
-				curr = newMarble
-			}
+			curr = newMarble
 		}
 
 		//printGame(first, curr, player)
