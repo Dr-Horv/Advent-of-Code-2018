@@ -57,9 +57,8 @@ func Solve(lines []string, partOne bool) string {
 		jobs := make(chan Coordinate, TaskSize)
 
 		task := func(c Coordinate) taskResult {
-			values := CalculateSquareValues(c, grid, 300)
-			max, i := FindMax(values)
-			return taskResult{c.X, c.Y, max, i + 1}
+			max, size := CalculateSquareValues(c, grid, 300)
+			return taskResult{c.X, c.Y, max, size}
 		}
 
 		for w := 1; w <= 8; w++ {
@@ -112,27 +111,30 @@ func calculateSquareValue(x int, y int, grid map[Coordinate]int, size int) int {
 	return sum
 }
 
-func CalculateSquareValues(c Coordinate, grid map[Coordinate]int, maxSize int) []int {
-	results := make([]int, 1)
-	results[0] = grid[Coordinate{X: c.X, Y: c.Y}]
-	sum := results[0]
-	size := 1
+func CalculateSquareValues(c Coordinate, grid map[Coordinate]int, maxSize int) (max int, size int) {
+	sum := grid[Coordinate{X: c.X, Y: c.Y}]
+	currentSize := 1
+	max = sum
+	size = currentSize
 	for {
-		if (c.X+size) > maxSize || (c.Y+size) > maxSize {
+		if (c.X+currentSize) > maxSize || (c.Y+currentSize) > maxSize {
 			break
 		}
 
-		for i := 0; i < size; i++ {
-			sum += grid[Coordinate{X: c.X + size, Y: c.Y + i}]
-			sum += grid[Coordinate{X: c.X + i, Y: c.Y + size}]
+		for i := 0; i < currentSize; i++ {
+			sum += grid[Coordinate{X: c.X + currentSize, Y: c.Y + i}]
+			sum += grid[Coordinate{X: c.X + i, Y: c.Y + currentSize}]
 		}
 
-		sum += grid[Coordinate{X: c.X + size, Y: c.Y + size}]
-		results = append(results, sum)
-		size++
+		sum += grid[Coordinate{X: c.X + currentSize, Y: c.Y + currentSize}]
+		if sum > max {
+			max = sum
+			size = currentSize + 1
+		}
+		currentSize++
 	}
 
-	return results
+	return max, size
 }
 
 func calculatePowerLevel(c Coordinate) int {
