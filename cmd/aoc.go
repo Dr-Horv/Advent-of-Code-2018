@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	var day = "11"
+	day := "11"
 	lines := pkg.ReadFile("./internal/day" + day + "/input")
 	start := time.Now()
 	answer := day11.Solve(lines, false)
