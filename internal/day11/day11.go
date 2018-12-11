@@ -9,7 +9,8 @@ import (
 type taskResult struct {
 	X      int
 	Y      int
-	Values []int
+	Value  int
+	Size   int
 }
 
 type job func(Coordinate) taskResult
@@ -57,20 +58,14 @@ func Solve(lines []string, partOne bool) string {
 
 		task := func(c Coordinate) taskResult {
 			values := CalculateSquareValues(c, grid, 300)
-			return taskResult{c.X, c.Y, values}
+			max, i := FindMax(values)
+			return taskResult{c.X, c.Y, max, i+1}
 		}
 
 		for w := 1; w <= 8; w++ {
 			go worker(w, jobs, messages, task)
 		}
-
-		type result struct {
-			X     int
-			Y     int
-			Value int
-			Size  int
-		}
-
+		
 		tasks := 0
 		for y := 1; y <= size; y++ {
 			for x := 1; x <= size; x++ {
@@ -81,13 +76,12 @@ func Solve(lines []string, partOne bool) string {
 		}
 
 		finished := 0
-		bestResult := result{-1, -1, math.MinInt64, -1}
+		bestResult := taskResult{-1, -1, math.MinInt64, -1}
 
 		for {
 			taskResult := <-messages
-			max, index := FindMax(taskResult.Values)
-			if max > bestResult.Value {
-				bestResult = result{taskResult.X, taskResult.Y, max, index + 1}
+			if taskResult.Value > bestResult.Value {
+				bestResult = taskResult
 			}
 			finished++
 
