@@ -106,12 +106,13 @@ func LessThanReadingOrder(c1 Coordinate, c2 Coordinate) bool {
 }
 
 func Solve(lines []string, partOne bool) string {
-	caveMap := make(map[Coordinate]Entity)
-	goblinMap := make(map[Coordinate]goblin)
-	elfMap := make(map[Coordinate]elf)
+	origCaveMap := make(map[Coordinate]Entity)
+	origGoblinMap := make(map[Coordinate]goblin)
+	origElfMap := make(map[Coordinate]elf)
 	height := len(lines)
 	width := len(lines[0])
 	id := 'a'
+	elves := 0
 	for y, l := range lines {
 		for x, r := range l {
 			c := Coordinate{X: x, Y: y}
@@ -119,61 +120,90 @@ func Solve(lines []string, partOne bool) string {
 			if r == 'G' {
 				goblin := goblin{string(id), c, 3, 200}
 				id++
-				goblinMap[c] = goblin
+				origGoblinMap[c] = goblin
 				e = goblin
 			} else if r == 'E' {
 				elf := elf{string(id), c, 3, 200}
 				id++
-				elfMap[c] = elf
+				origElfMap[c] = elf
+				elves++
 				e = elf
 			} else if r == '#' {
 				e = wall(r)
 			} else if r == '.' {
 				e = empty(r)
 			}
-			caveMap[c] = e
+			origCaveMap[c] = e
 		}
 	}
 
-	round := 0
-	//prettyPrintMap(caveMap, elfMap, goblinMap, width, height)
+	attackPower := 3
 	var hasDoneTurn map[string]bool
+	var round int
 	for {
-		hasDoneTurn = make(map[string]bool, 0)
-		for y := 0; y < height; y++ {
-			for x := 0; x < width; x++ {
-				c := Coordinate{X: x, Y: y}
-				e, _ := caveMap[c]
-
-				if e.isElf() {
-					elf := elfMap[c]
-					_, hasTurned := hasDoneTurn[elf.ID]
-					if hasTurned {
-						continue
-					}
-					doElfTurn(elfMap, c, goblinMap, caveMap)
-					hasDoneTurn[elf.ID] = true
-				} else if e.isGoblin() {
-					goblin := goblinMap[c]
-					_, hasTurned := hasDoneTurn[goblin.ID]
-					if hasTurned {
-						continue
-					}
-					doGoblinTurn(elfMap, c, goblinMap, caveMap)
-					hasDoneTurn[goblin.ID] = true
-				}
-			}
+		round = 0
+		caveMap := make(map[Coordinate]Entity, len(origCaveMap))
+		for k, v := range origCaveMap {
+			caveMap[k] = v
 		}
-		//fmt.Printf("Round %v\n", round)
+		goblinMap := make(map[Coordinate]goblin, len(origGoblinMap))
+		for k, v := range origGoblinMap {
+			goblinMap[k] = v
+		}
+		elfMap := make(map[Coordinate]elf, len(origElfMap))
+		for k, v := range origElfMap {
+			v.AttackPower = attackPower
+			elfMap[k] = v
+		}
+
+		fmt.Printf("Starting simulation with %v attack power\n", attackPower)
 		//prettyPrintMap(caveMap, elfMap, goblinMap, width, height)
 
-		if len(elfMap) == 0 || len(goblinMap) == 0 {
-			fmt.Printf("End at round: %v\n", round)
-			prettyPrintMap(caveMap, elfMap, goblinMap, width, height)
-			return calculateAnswer(round, elfMap, goblinMap)
+		for {
+			hasDoneTurn = make(map[string]bool, 0)
+			if !partOne {
+				if len(elfMap) < elves {
+					break
+				}
+			}
+			for y := 0; y < height; y++ {
+				for x := 0; x < width; x++ {
+					c := Coordinate{X: x, Y: y}
+					e, _ := caveMap[c]
+
+					if e.isElf() {
+						elf := elfMap[c]
+						_, hasTurned := hasDoneTurn[elf.ID]
+						if hasTurned {
+							continue
+						}
+						doElfTurn(elfMap, c, goblinMap, caveMap)
+						hasDoneTurn[elf.ID] = true
+					} else if e.isGoblin() {
+						goblin := goblinMap[c]
+						_, hasTurned := hasDoneTurn[goblin.ID]
+						if hasTurned {
+							continue
+						}
+						doGoblinTurn(elfMap, c, goblinMap, caveMap)
+						hasDoneTurn[goblin.ID] = true
+					}
+				}
+			}
+			//fmt.Printf("Round %v\n", round)
+			//prettyPrintMap(caveMap, elfMap, goblinMap, width, height)
+
+			if len(elfMap) == 0 || len(goblinMap) == 0 {
+				fmt.Printf("End at round: %v\n", round)
+				prettyPrintMap(caveMap, elfMap, goblinMap, width, height)
+				return calculateAnswer(round, elfMap, goblinMap)
+			}
+
+			round++
+
 		}
 
-		round++
+		attackPower++
 
 	}
 
