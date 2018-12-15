@@ -3,6 +3,7 @@ package day13
 import (
 	"fmt"
 	. "github.com/dr-horv/advent-of-code-2018/internal/pkg"
+	"sort"
 )
 
 type Action int
@@ -63,8 +64,6 @@ func Solve(lines []string, partOne bool) string {
 		return &Cart{string(id), Coordinate{X: x, Y: y}, false, Left, cd}
 	}
 
-	height := len(lines)
-	maxX := 0
 	for y, l := range lines {
 		for x, r := range l {
 			c := Coordinate{X: x, Y: y}
@@ -83,14 +82,9 @@ func Solve(lines []string, partOne bool) string {
 			} else {
 				tracks[c] = r
 			}
-
-			if x > maxX {
-				maxX = x
-			}
 		}
 	}
 
-	width := maxX
 	tick := 1
 	for {
 		cartsAlive := len(cartMap)
@@ -100,92 +94,94 @@ func Solve(lines []string, partOne bool) string {
 			}
 		}
 
-		hasTicked := make(map[string]bool, 0)
+		carts := make([]*Cart, 0)
+		for _, c := range cartMap {
+			carts = append(carts, c)
+		}
 
-		for y := 0; y < height; y++ {
-			for x := 0; x < width; x++ {
-				pos := Coordinate{X: x, Y: y}
-				c, found := cartMap[pos]
+		sort.Slice(carts, func(i, j int) bool {
+			c1 := carts[i]
+			c2 := carts[j]
 
-				if !found {
-					continue
-				}
-
-				if c.Crashed {
-					continue
-				}
-				_, done := hasTicked[c.ID]
-				if done {
-					continue
-				}
-
-				hasTicked[c.ID] = true
-				newPos := c.Pos.Plus(Coordinate(c.Dir))
-				otherCart, hasCart := cartMap[newPos]
-
-				if hasCart {
-					c.Crashed = true
-					otherCart.Crashed = true
-					delete(cartMap, otherCart.Pos)
-					fmt.Printf("tick: %v, Crash at %v between %v %v\n", tick, newPos, c.ID, otherCart.ID)
-					if partOne {
-						return fmt.Sprint(newPos)
-					}
-				}
-
-				delete(cartMap, c.Pos)
-
-				if c.Crashed {
-					continue
-				}
-
-				c.Pos = newPos
-				trackPiece, trackFound := tracks[newPos]
-
-				if !trackFound {
-					fmt.Printf("Derailed %v at %v", c.ID, c.Pos)
-					return ""
-				}
-
-				switch trackPiece {
-				case '+':
-					switch c.NextIntersection {
-					case Left:
-						c.turnLeft()
-						c.NextIntersection = Straight
-					case Straight:
-						c.NextIntersection = Right
-					case Right:
-						c.turnRight()
-						c.NextIntersection = Left
-					}
-				case '/':
-					switch c.Dir {
-					case CartDown:
-						c.turnRight()
-					case CartRight:
-						c.turnLeft()
-					case CartLeft:
-						c.turnLeft()
-					case CartUp:
-						c.turnRight()
-					}
-				case '\\':
-					switch c.Dir {
-					case CartDown:
-						c.turnLeft()
-					case CartRight:
-						c.turnRight()
-					case CartLeft:
-						c.turnRight()
-					case CartUp:
-						c.turnLeft()
-					}
-				}
-
-				cartMap[c.Pos] = c
-
+			if c1.Pos.Y < c2.Pos.Y {
+				return true
+			} else if c1.Pos.Y == c2.Pos.Y && c1.Pos.X < c2.Pos.X {
+				return true
 			}
+
+			return false
+		})
+
+		for _, c := range carts {
+			if c.Crashed {
+				continue
+			}
+
+			newPos := c.Pos.Plus(Coordinate(c.Dir))
+			otherCart, hasCart := cartMap[newPos]
+
+			if hasCart {
+				c.Crashed = true
+				otherCart.Crashed = true
+				delete(cartMap, otherCart.Pos)
+				fmt.Printf("tick: %v, Crash at %v between %v %v\n", tick, newPos, c.ID, otherCart.ID)
+				if partOne {
+					return fmt.Sprint(newPos)
+				}
+			}
+
+			delete(cartMap, c.Pos)
+
+			if c.Crashed {
+				continue
+			}
+
+			c.Pos = newPos
+			trackPiece, trackFound := tracks[newPos]
+
+			if !trackFound {
+				fmt.Printf("Derailed %v at %v", c.ID, c.Pos)
+				return ""
+			}
+
+			switch trackPiece {
+			case '+':
+				switch c.NextIntersection {
+				case Left:
+					c.turnLeft()
+					c.NextIntersection = Straight
+				case Straight:
+					c.NextIntersection = Right
+				case Right:
+					c.turnRight()
+					c.NextIntersection = Left
+				}
+			case '/':
+				switch c.Dir {
+				case CartDown:
+					c.turnRight()
+				case CartRight:
+					c.turnLeft()
+				case CartLeft:
+					c.turnLeft()
+				case CartUp:
+					c.turnRight()
+				}
+			case '\\':
+				switch c.Dir {
+				case CartDown:
+					c.turnLeft()
+				case CartRight:
+					c.turnRight()
+				case CartLeft:
+					c.turnRight()
+				case CartUp:
+					c.turnLeft()
+				}
+			}
+
+			cartMap[c.Pos] = c
+
 		}
 		tick++
 	}
