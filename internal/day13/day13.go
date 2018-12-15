@@ -88,7 +88,7 @@ func (c Cart) newDirection(t Track) Direction {
 }
 
 type Cart struct {
-	ID         int
+	ID         string
 	Pos        Coordinate
 	Dir        Direction
 	Crashed    bool
@@ -117,10 +117,10 @@ func Solve(lines []string, partOne bool) string {
 	txtMap := make(map[Coordinate]rune)
 	carts := make([]*Cart, 0)
 
-	cartId := 0
+	cartId := 'A' - 1
 	cartFactory := func(x int, y int, dir Direction) *Cart {
 		cartId++
-		return &Cart{cartId, Coordinate{X: x, Y: y}, dir, false, Left}
+		return &Cart{string(cartId), Coordinate{X: x, Y: y}, dir, false, Left}
 	}
 
 	items := 0
@@ -192,13 +192,17 @@ func Solve(lines []string, partOne bool) string {
 
 	loop := 0
 
-	cartsAliveMap := make(map[int]*Cart)
+	cartsAliveMap := make(map[string]*Cart)
 	for _, c := range carts {
 		cartsAliveMap[c.ID] = c
+		fmt.Println(c)
 	}
 
 	oneTickMore := false
 	for {
+		if loop == 810 {
+			return ""
+		}
 		alive := 0
 		aliveC := carts[0]
 		for _, c := range carts {
@@ -212,27 +216,27 @@ func Solve(lines []string, partOne bool) string {
 		if alive == 1 {
 			fmt.Println(aliveC.ID)
 			fmt.Println(aliveC.Pos)
+			fmt.Println(aliveC)
 			if !oneTickMore {
 				oneTickMore = true
 			} else {
 				return fmt.Sprint(aliveC.Pos)
 			}
 		} else if loop%100 == 0 {
-			fmt.Printf("Alive: %v\n", alive)
-			fmt.Printf("Carts: %v\n", len(carts))
+			//fmt.Printf("Alive: %v\n", alive)
+			//fmt.Printf("Carts: %v\n", len(carts))
 		}
 
 		sort.Slice(carts, cartSorter)
 		cartMap := make(map[Coordinate]*Cart)
 		for _, c := range carts {
+
 			if !c.Crashed {
 				cartMap[c.Pos] = c
 			}
 			// fmt.Printf("%v: %v,%v\t", c.ID, c.Pos.X, c.Pos.Y)
 		}
 		// fmt.Println("")
-
-		//printWorld(cartMap, trackMap)
 
 		for i, c := range carts {
 			if c.Crashed {
@@ -256,6 +260,10 @@ func Solve(lines []string, partOne bool) string {
 				delete(cartsAliveMap, c.ID)
 				delete(cartsAliveMap, otherCart.ID)
 
+				for _, c := range carts {
+					fmt.Println(c)
+				}
+
 				if partOne {
 					return fmt.Sprint(newPos)
 				} else {
@@ -263,7 +271,12 @@ func Solve(lines []string, partOne bool) string {
 				}
 			}
 
-			piece := trackMap[newPos]
+			piece, onTrack := trackMap[newPos]
+			if !onTrack {
+				fmt.Println(loop)
+				panic("Derailed!")
+			}
+
 			newDir := c.newDirection(piece)
 			c.Dir = newDir
 			c.Pos = newPos
@@ -281,10 +294,10 @@ func Solve(lines []string, partOne bool) string {
 	return ""
 }
 
-func printWorld(carts map[Coordinate]Cart, tracks map[Coordinate]Track) {
+func printWorld(carts map[Coordinate]*Cart, tracks map[Coordinate]Track) {
 	str := ""
-	for y := 0; y < 14; y++ {
-		for x := 0; x < 14; x++ {
+	for y := 0; y < 151; y++ {
+		for x := 0; x < 151; x++ {
 			c := Coordinate{X: x, Y: y}
 			cart, cf := carts[c]
 			track, tf := tracks[c]
