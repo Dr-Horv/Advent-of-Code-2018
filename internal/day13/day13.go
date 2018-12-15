@@ -3,314 +3,190 @@ package day13
 import (
 	"fmt"
 	. "github.com/dr-horv/advent-of-code-2018/internal/pkg"
-	"sort"
 )
 
-type Track int
+type Action int
 
 const (
-	LeftUp Track = iota
-	Vertical
-	LeftDown
-	Horizontal
-	Intersection
+	Left     Action = 1
+	Straight        = 2
+	Right           = 3
 )
 
-func (t Track) String() string {
-	switch t {
-	case LeftUp:
-		return "/"
-	case LeftDown:
-		return "\\"
-	case Vertical:
-		return "|"
-	case Horizontal:
-		return "-"
-	case Intersection:
-		return "+"
-	}
-
-	panic("No track representation")
-}
-
-type NextIntersectionAction int
-
-const (
-	Left     NextIntersectionAction = iota
-	Straight NextIntersectionAction = iota
-	Right    NextIntersectionAction = iota
-)
-
-func (n NextIntersectionAction) String() string {
-	switch n {
-	case Left:
-		return "L"
-	case Right:
-		return "R"
-	case Straight:
-		return "S"
-	}
-
-	panic("No representation")
-}
-
-func (c Cart) newDirection(t Track) Direction {
-	switch t {
-	case Intersection:
-		switch c.NextAction {
-		case Left:
-			return c.Dir.TurnLeft()
-		case Straight:
-			return c.Dir
-		case Right:
-			return c.Dir.TurnRight()
-		}
-	case Horizontal:
-		return c.Dir
-	case LeftUp:
-		if c.Dir == LEFT || c.Dir == RIGHT {
-			return c.Dir.TurnLeft()
-		} else {
-			return c.Dir.TurnRight()
-		}
-	case LeftDown:
-		if c.Dir == LEFT || c.Dir == RIGHT {
-			return c.Dir.TurnRight()
-		} else {
-			return c.Dir.TurnLeft()
-		}
-	case Vertical:
-		return c.Dir
-	}
-
-	panic(fmt.Sprintf("No next dir found! %v %v", t, c))
-
-}
+type CartDirection Coordinate
 
 type Cart struct {
-	ID         string
-	Pos        Coordinate
-	Dir        Direction
-	Crashed    bool
-	NextAction NextIntersectionAction
+	ID               string
+	Pos              Coordinate
+	Crashed          bool
+	NextIntersection Action
+	Dir              CartDirection
 }
 
-func (c Cart) String() string {
-	return fmt.Sprintf("%v\t%v\t%v\t%v\t%v", c.ID, c.Pos, c.Dir, c.NextAction, c.Crashed)
-}
+var CartLeft = CartDirection(Coordinate{X: -1})
+var CartRight = CartDirection(Coordinate{X: 1})
+var CartUp = CartDirection(Coordinate{Y: -1})
+var CartDown = CartDirection(Coordinate{Y: 1})
 
-func (c Cart) nextAction() NextIntersectionAction {
-	switch c.NextAction {
-	case Right:
-		return Left
-	case Left:
-		return Straight
-	case Straight:
-		return Right
+func (c *Cart) turnLeft() {
+	switch c.Dir {
+	case CartLeft:
+		c.Dir = CartDown
+	case CartDown:
+		c.Dir = CartRight
+	case CartRight:
+		c.Dir = CartUp
+	case CartUp:
+		c.Dir = CartLeft
 	}
+}
 
-	panic("No next action!")
+func (c *Cart) turnRight() {
+	switch c.Dir {
+	case CartLeft:
+		c.Dir = CartUp
+	case CartUp:
+		c.Dir = CartRight
+	case CartRight:
+		c.Dir = CartDown
+	case CartDown:
+		c.Dir = CartLeft
+	}
 }
 
 func Solve(lines []string, partOne bool) string {
-
-	txtMap := make(map[Coordinate]rune)
-	carts := make([]*Cart, 0)
-
-	cartId := 'A' - 1
-	cartFactory := func(x int, y int, dir Direction) *Cart {
-		cartId++
-		return &Cart{string(cartId), Coordinate{X: x, Y: y}, dir, false, Left}
+	tracks := make(map[Coordinate]rune)
+	id := 'A' - 1
+	cartMap := make(map[Coordinate]*Cart, 0)
+	cartFactory := func(x int, y int, cd CartDirection) *Cart {
+		id++
+		return &Cart{string(id), Coordinate{X: x, Y: y}, false, Left, cd}
 	}
 
-	items := 0
+	height := len(lines)
+	maxX := 0
 	for y, l := range lines {
-		for x, c := range l {
-			r := rune(c)
-			if r == ' ' {
-				continue
-			} else if r == '<' {
-				carts = append(carts, cartFactory(x, y, LEFT))
+		for x, r := range l {
+			c := Coordinate{X: x, Y: y}
+			if r == '^' {
+				tracks[c] = '|'
+				cartMap[c] = cartFactory(x, y, CartUp)
 			} else if r == '>' {
-				carts = append(carts, cartFactory(x, y, RIGHT))
-			} else if r == '^' {
-				carts = append(carts, cartFactory(x, y, UP))
+				tracks[c] = '-'
+				cartMap[c] = cartFactory(x, y, CartRight)
+			} else if r == '<' {
+				tracks[c] = '-'
+				cartMap[c] = cartFactory(x, y, CartLeft)
 			} else if r == 'v' {
-				carts = append(carts, cartFactory(x, y, DOWN))
-			}
-			txtMap[Coordinate{X: x, Y: y}] = r
-			items++
-			//fmt.Printf("(%v,%v) %v\n", x, y, string(r))
-		}
-	}
-
-	trackMap := make(map[Coordinate]Track)
-	for c, tr := range txtMap {
-		var trackType Track = -1
-
-		switch tr {
-		case '/':
-			trackType = LeftUp
-		case '\\':
-			trackType = LeftDown
-		case '|':
-			trackType = Vertical
-		case '-':
-			trackType = Horizontal
-		case '<':
-			trackType = Horizontal
-		case '>':
-			trackType = Horizontal
-		case '^':
-			trackType = Vertical
-		case 'v':
-			trackType = Vertical
-		case '+':
-			trackType = Intersection
-		}
-
-		if trackType == -1 {
-			panic("Wut? No track!")
-		}
-
-		trackMap[c] = trackType
-
-		//fmt.Printf("%v\t%v\n", c, trackType)
-	}
-
-	cartSorter := func(i, j int) bool {
-		c1 := carts[i]
-		c2 := carts[j]
-		if c1.Pos.Y < c2.Pos.Y {
-			return true
-		} else if c1.Pos.Y > c2.Pos.Y {
-			return false
-		} else {
-			return c1.Pos.X < c2.Pos.X
-		}
-	}
-
-	loop := 0
-
-	cartsAliveMap := make(map[string]*Cart)
-	for _, c := range carts {
-		cartsAliveMap[c.ID] = c
-		fmt.Println(c)
-	}
-
-	oneTickMore := false
-	for {
-		if loop == 810 {
-			return ""
-		}
-		alive := 0
-		aliveC := carts[0]
-		for _, c := range carts {
-			if !c.Crashed {
-				alive++
-				aliveC = c
-				//fmt.Printf("%v is alive\n", c.ID)
-			}
-		}
-
-		if alive == 1 {
-			fmt.Println(aliveC.ID)
-			fmt.Println(aliveC.Pos)
-			fmt.Println(aliveC)
-			if !oneTickMore {
-				oneTickMore = true
+				tracks[c] = '|'
+				cartMap[c] = cartFactory(x, y, CartDown)
 			} else {
-				return fmt.Sprint(aliveC.Pos)
+				tracks[c] = r
 			}
-		} else if loop%100 == 0 {
-			//fmt.Printf("Alive: %v\n", alive)
-			//fmt.Printf("Carts: %v\n", len(carts))
+
+			if x > maxX {
+				maxX = x
+			}
+		}
+	}
+
+	width := maxX
+	tick := 1
+	for {
+		cartsAlive := len(cartMap)
+		if cartsAlive == 1 {
+			for _, c := range cartMap {
+				return fmt.Sprint(c.Pos)
+			}
 		}
 
-		sort.Slice(carts, cartSorter)
-		cartMap := make(map[Coordinate]*Cart)
-		for _, c := range carts {
+		hasTicked := make(map[string]bool, 0)
 
-			if !c.Crashed {
-				cartMap[c.Pos] = c
-			}
-			// fmt.Printf("%v: %v,%v\t", c.ID, c.Pos.X, c.Pos.Y)
-		}
-		// fmt.Println("")
+		for y := 0; y < height; y++ {
+			for x := 0; x < width; x++ {
+				pos := Coordinate{X: x, Y: y}
+				c, found := cartMap[pos]
 
-		for i, c := range carts {
-			if c.Crashed {
-				continue
-			}
-
-			_, isAlive := cartsAliveMap[c.ID]
-
-			if !isAlive {
-				continue
-			}
-
-			newPos := c.Pos.Move(c.Dir)
-			otherCart, found := cartMap[newPos]
-			if found {
-				c.Crashed = true
-				otherCart.Crashed = true
-				fmt.Printf("%v: Crashed %v %v %v\n", loop, newPos, c.ID, otherCart.ID)
-				delete(cartMap, c.Pos)
-				delete(cartMap, otherCart.Pos)
-				delete(cartsAliveMap, c.ID)
-				delete(cartsAliveMap, otherCart.ID)
-
-				for _, c := range carts {
-					fmt.Println(c)
-				}
-
-				if partOne {
-					return fmt.Sprint(newPos)
-				} else {
+				if !found {
 					continue
 				}
-			}
 
-			piece, onTrack := trackMap[newPos]
-			if !onTrack {
-				fmt.Println(loop)
-				panic("Derailed!")
-			}
+				if c.Crashed {
+					continue
+				}
+				_, done := hasTicked[c.ID]
+				if done {
+					continue
+				}
 
-			newDir := c.newDirection(piece)
-			c.Dir = newDir
-			c.Pos = newPos
-			if piece == Intersection {
-				c.NextAction = c.nextAction()
-			}
+				hasTicked[c.ID] = true
+				newPos := c.Pos.Plus(Coordinate(c.Dir))
+				otherCart, hasCart := cartMap[newPos]
 
-			cartMap[newPos] = c
-			carts[i] = c
+				if hasCart {
+					c.Crashed = true
+					otherCart.Crashed = true
+					delete(cartMap, otherCart.Pos)
+					fmt.Printf("tick: %v, Crash at %v between %v %v\n", tick, newPos, c.ID, otherCart.ID)
+					if partOne {
+						return fmt.Sprint(newPos)
+					}
+				}
+
+				delete(cartMap, c.Pos)
+
+				if c.Crashed {
+					continue
+				}
+
+				c.Pos = newPos
+				trackPiece, trackFound := tracks[newPos]
+
+				if !trackFound {
+					fmt.Printf("Derailed %v at %v", c.ID, c.Pos)
+					return ""
+				}
+
+				switch trackPiece {
+				case '+':
+					switch c.NextIntersection {
+					case Left:
+						c.turnLeft()
+						c.NextIntersection = Straight
+					case Straight:
+						c.NextIntersection = Right
+					case Right:
+						c.turnRight()
+						c.NextIntersection = Left
+					}
+				case '/':
+					switch c.Dir {
+					case CartDown:
+						c.turnRight()
+					case CartRight:
+						c.turnLeft()
+					case CartLeft:
+						c.turnLeft()
+					case CartUp:
+						c.turnRight()
+					}
+				case '\\':
+					switch c.Dir {
+					case CartDown:
+						c.turnLeft()
+					case CartRight:
+						c.turnRight()
+					case CartLeft:
+						c.turnRight()
+					case CartUp:
+						c.turnLeft()
+					}
+				}
+
+				cartMap[c.Pos] = c
+
+			}
 		}
-
-		loop++
+		tick++
 	}
-
-	return ""
-}
-
-func printWorld(carts map[Coordinate]*Cart, tracks map[Coordinate]Track) {
-	str := ""
-	for y := 0; y < 151; y++ {
-		for x := 0; x < 151; x++ {
-			c := Coordinate{X: x, Y: y}
-			cart, cf := carts[c]
-			track, tf := tracks[c]
-			if cf {
-				str += fmt.Sprint(cart.Dir)
-			} else if tf {
-				str += fmt.Sprint(track)
-			} else {
-				str += " "
-			}
-		}
-		str += "\n"
-	}
-
-	fmt.Println(str)
 }

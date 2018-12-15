@@ -13,6 +13,10 @@ type Coordinate struct {
 
 type Direction int
 
+func (c Coordinate) Plus(c2 Coordinate) Coordinate {
+	return Coordinate{c.X + c2.X, c.Y + c2.Y}
+}
+
 const (
 	LEFT Direction = iota
 	RIGHT
