@@ -38,6 +38,8 @@ func Solve(lines []string, partOne bool) string {
 	first = root
 	generations := 50000000000
 	start := time.Now()
+	gen1 := -1
+	diffBetweenGens := -1
 	for g := 0; g < generations; g++ {
 		//printPlants(first, g)
 
@@ -45,6 +47,18 @@ func Solve(lines []string, partOne bool) string {
 			t := time.Now()
 			elapsed := t.Sub(start)
 			fmt.Printf("Progress: %v after %v \n", float64(g)/float64(generations), elapsed)
+		}
+
+		if g%1000 == 0 {
+			sum := calculateSum(first)
+			newDiff := sum - gen1
+			fmt.Printf("Diff between 1000 gens: %v at %v\n", newDiff, g)
+			if newDiff == diffBetweenGens {
+				fmt.Printf("Current sum: %v\n", sum)
+				return fmt.Sprint(calculateAnswer(calculateSum(first), g, newDiff))
+			}
+			diffBetweenGens = newDiff
+			gen1 = sum
 		}
 
 		first, last := nextGeneration(first, rules)
@@ -57,11 +71,13 @@ func Solve(lines []string, partOne bool) string {
 		}
 	}
 
-	//printPlants(first, 20)
-
 	sum := calculateSum(first)
 
 	return fmt.Sprint(sum)
+}
+
+func calculateAnswer(sum int, gen int, diff int) int {
+	return sum + ((50000000000-gen)/1000)*diff
 }
 
 func calculateSum(curr *plant) int {
