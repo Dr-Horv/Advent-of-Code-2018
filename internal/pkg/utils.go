@@ -76,3 +76,12 @@ func FindMax(slice []int) (int, int) {
 
 	return max, maxI
 }
+
+func Sum(slice []int) int {
+	s := 0
+	for _, v := range slice {
+		s += v
+	}
+
+	return s
+}
