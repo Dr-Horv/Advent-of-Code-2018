@@ -70,7 +70,7 @@ func (d Direction) TurnLeft() Direction {
 }
 
 func (c Coordinate) String() string {
-	return fmt.Sprintf("(%v, %v)", c.X, c.Y)
+	return fmt.Sprintf("(%v,%v)", c.X, c.Y)
 }
 
 func (c Coordinate) Left() Coordinate {
@@ -115,6 +115,11 @@ func GetNeighbours(c Coordinate) (Coordinate, Coordinate, Coordinate, Coordinate
 	c3 := Coordinate{X: c.X, Y: c.Y + 1}
 	c4 := Coordinate{X: c.X, Y: c.Y - 1}
 	return c1, c2, c3, c4
+}
+
+func GetNeighboursSlice(c Coordinate) []Coordinate {
+	c1, c2, c3, c4 := GetNeighbours(c)
+	return []Coordinate{c1, c2, c3, c4}
 }
 
 func ParseCoordinate(s string) Coordinate {

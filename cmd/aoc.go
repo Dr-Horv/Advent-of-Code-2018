@@ -28,6 +28,7 @@ func main() {
 		}
 		defer pprof.StopCPUProfile()
 	}
+
 	day := "13"
 	lines := pkg.ReadFile("./internal/day" + day + "/input")
 	start := time.Now()
