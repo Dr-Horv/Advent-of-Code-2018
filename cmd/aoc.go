@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/dr-horv/advent-of-code-2018/internal/day15"
+	"github.com/dr-horv/advent-of-code-2018/internal/day13"
 	"github.com/dr-horv/advent-of-code-2018/internal/pkg"
 	"log"
 	"os"
@@ -29,10 +29,10 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	day := "15"
+	day := "13"
 	lines := pkg.ReadFile("./internal/day" + day + "/input")
 	start := time.Now()
-	answer := day15.Solve(lines, false)
+	answer := day13.Solve(lines, false)
 	t := time.Now()
 	elapsed := t.Sub(start)
 	fmt.Println(answer)
