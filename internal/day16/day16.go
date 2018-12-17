@@ -2,7 +2,7 @@ package day16
 
 import (
 	"fmt"
-	"strconv"
+	"github.com/dr-horv/advent-of-code-2018/internal/pkg"
 	"strings"
 )
 
@@ -147,15 +147,6 @@ func (sample sample) copyExpectedRegisters() []int {
 	return r
 }
 
-func strConv(s string) int {
-	v, e := strconv.Atoi(strings.TrimSpace(s))
-	if e != nil {
-		panic("Can't parse " + s)
-	}
-
-	return v
-}
-
 type instruction func(registers []int, a int, b int, c int)
 type operation struct {
 	instruction instruction
@@ -187,34 +178,34 @@ func Solve(lines []string, partOne bool) string {
 				data := l[len("Before: [") : len(l)-1]
 				values := strings.Split(data, ",")
 				origRegisters = make([]int, 4)
-				origRegisters[0] = strConv(values[0])
-				origRegisters[1] = strConv(values[1])
-				origRegisters[2] = strConv(values[2])
-				origRegisters[3] = strConv(values[3])
+				origRegisters[0] = pkg.StrConv(values[0])
+				origRegisters[1] = pkg.StrConv(values[1])
+				origRegisters[2] = pkg.StrConv(values[2])
+				origRegisters[3] = pkg.StrConv(values[3])
 			} else if strings.Contains(l, "After") {
 				data := l[len("After:  [") : len(l)-1]
 				values := strings.Split(data, ",")
 				expectedRegisters = make([]int, 4)
-				expectedRegisters[0] = strConv(values[0])
-				expectedRegisters[1] = strConv(values[1])
-				expectedRegisters[2] = strConv(values[2])
-				expectedRegisters[3] = strConv(values[3])
+				expectedRegisters[0] = pkg.StrConv(values[0])
+				expectedRegisters[1] = pkg.StrConv(values[1])
+				expectedRegisters[2] = pkg.StrConv(values[2])
+				expectedRegisters[3] = pkg.StrConv(values[3])
 
 				samples = append(samples, sample{origRegisters, expectedRegisters, id, a, b, c})
 			} else {
 				values := strings.Split(strings.TrimSpace(l), " ")
-				id = strConv(values[0])
-				a = strConv(values[1])
-				b = strConv(values[2])
-				c = strConv(values[3])
+				id = pkg.StrConv(values[0])
+				a = pkg.StrConv(values[1])
+				b = pkg.StrConv(values[2])
+				c = pkg.StrConv(values[3])
 			}
 		} else {
 			values := strings.Split(strings.TrimSpace(l), " ")
 			program = append(program, programInstruction{
-				strConv(values[0]),
-				strConv(values[1]),
-				strConv(values[2]),
-				strConv(values[3]),
+				pkg.StrConv(values[0]),
+				pkg.StrConv(values[1]),
+				pkg.StrConv(values[2]),
+				pkg.StrConv(values[3]),
 			})
 
 		}

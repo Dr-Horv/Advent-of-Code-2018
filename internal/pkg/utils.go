@@ -2,6 +2,8 @@ package pkg
 
 import (
 	"math"
+	"strconv"
+	"strings"
 )
 
 func Abs(i int) int {
@@ -52,4 +54,13 @@ func Sum(slice []int) int {
 	}
 
 	return s
+}
+
+func StrConv(s string) int {
+	v, e := strconv.Atoi(strings.TrimSpace(s))
+	if e != nil {
+		panic("Can't parse " + s)
+	}
+
+	return v
 }

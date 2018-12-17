@@ -18,7 +18,7 @@ func check(e error, msg string) {
 }
 
 func main() {
-	day := "16"
+	day := "17"
 	args := os.Args[1:]
 
 	if len(args) != 1 {
