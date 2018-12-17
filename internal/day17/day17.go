@@ -34,7 +34,7 @@ func Solve(lines []string, partOne bool) string {
 
 	_, _, minY, maxY := calculateBounds(world)
 	hasVisited := make(map[Coordinate]bool, 0)
-	spreadWater(world, hasVisited, Coordinate{X: 500, Y: 1}, minY, maxY)
+	spreadWater(world, hasVisited, Coordinate{X: 500, Y: 1}, maxY)
 	printWorld(world)
 	if partOne {
 		return fmt.Sprint(countWater(world, minY))
@@ -71,38 +71,44 @@ func countWater(squares map[Coordinate]square, minY int) int {
 	return sum
 }
 
-func spreadWater(squares map[Coordinate]square, hasVisited map[Coordinate]bool, coordinate Coordinate, minY int, maxY int) bool {
+func isTerminatingOrCanSpreadDown(squares map[Coordinate]square, hasVisited map[Coordinate]bool, coordinate Coordinate, maxY int) (bool, bool) {
 	v, hasVisitedBefore := hasVisited[coordinate]
 
 	if hasVisitedBefore {
-		return v
+		return true, v
 	}
 
 	if maxY < coordinate.Y {
 		hasVisited[coordinate] = true
-		return true
+		return true, true
 	}
 
 	s, f := squares[coordinate]
 	if f {
 		if s == Clay {
 			hasVisited[coordinate] = false
-			return false
-		} else {
-			fmt.Println(coordinate)
-			panic("Shouldn't happen")
+			return true, false
 		}
 	}
 
 	squares[coordinate] = Water
-	canSpread := spreadWater(squares, hasVisited, coordinate.Down(), minY, maxY)
+	canSpread := spreadWater(squares, hasVisited, coordinate.Down(), maxY)
 	if canSpread {
 		hasVisited[coordinate] = true
-		return true
+		return true, true
+	}
+	return false, false
+
+}
+
+func spreadWater(squares map[Coordinate]square, hasVisited map[Coordinate]bool, coordinate Coordinate, maxY int) bool {
+	isEnd, value := isTerminatingOrCanSpreadDown(squares, hasVisited, coordinate, maxY)
+	if isEnd {
+		return value
 	}
 
-	canSpreadRight := spreadRight(squares, hasVisited, coordinate.Right(), minY, maxY)
-	canSpreadLeft := spreadLeft(squares, hasVisited, coordinate.Left(), minY, maxY)
+	canSpreadRight := spreadRight(squares, hasVisited, coordinate.Right(), maxY)
+	canSpreadLeft := spreadLeft(squares, hasVisited, coordinate.Left(), maxY)
 
 	if canSpreadRight && !canSpreadLeft {
 		updateMemoryToTheLeft(squares, hasVisited, coordinate.Left())
@@ -113,6 +119,40 @@ func spreadWater(squares map[Coordinate]square, hasVisited map[Coordinate]bool, 
 	}
 
 	if canSpreadRight || canSpreadLeft {
+		hasVisited[coordinate] = true
+		return true
+	}
+
+	hasVisited[coordinate] = false
+	return false
+}
+
+func spreadRight(squares map[Coordinate]square, hasVisited map[Coordinate]bool, coordinate Coordinate, maxY int) bool {
+	isEnd, value := isTerminatingOrCanSpreadDown(squares, hasVisited, coordinate, maxY)
+	if isEnd {
+		return value
+	}
+
+	canSpreadRight := spreadRight(squares, hasVisited, coordinate.Right(), maxY)
+
+	if canSpreadRight {
+		hasVisited[coordinate] = true
+		return true
+	}
+
+	hasVisited[coordinate] = false
+	return false
+}
+
+func spreadLeft(squares map[Coordinate]square, hasVisited map[Coordinate]bool, coordinate Coordinate, maxY int) bool {
+	isEnd, value := isTerminatingOrCanSpreadDown(squares, hasVisited, coordinate, maxY)
+	if isEnd {
+		return value
+	}
+
+	canSpreadLeft := spreadLeft(squares, hasVisited, coordinate.Left(), maxY)
+
+	if canSpreadLeft {
 		hasVisited[coordinate] = true
 		return true
 	}
@@ -145,88 +185,6 @@ func updateMemoryToTheLeft(squares map[Coordinate]square, hasVisited map[Coordin
 
 		coordinate = coordinate.Left()
 	}
-}
-
-func spreadRight(squares map[Coordinate]square, hasVisited map[Coordinate]bool, coordinate Coordinate, minY int, maxY int) bool {
-	v, hasVisitedBefore := hasVisited[coordinate]
-
-	if hasVisitedBefore {
-		return v
-	}
-
-	if maxY < coordinate.Y {
-		hasVisited[coordinate] = true
-		return true
-	}
-
-	s, f := squares[coordinate]
-	if f {
-		if s == Clay {
-			hasVisited[coordinate] = false
-			return false
-		} else {
-			fmt.Println(coordinate)
-			panic("Shouldn't happen spreadRight")
-		}
-	}
-
-	squares[coordinate] = Water
-	canSpread := spreadWater(squares, hasVisited, coordinate.Down(), minY, maxY)
-	if canSpread {
-		hasVisited[coordinate] = true
-		return true
-	}
-
-	canSpreadRight := spreadRight(squares, hasVisited, coordinate.Right(), minY, maxY)
-
-	if canSpreadRight {
-		hasVisited[coordinate] = true
-		return true
-	}
-
-	hasVisited[coordinate] = false
-	return false
-}
-
-func spreadLeft(squares map[Coordinate]square, hasVisited map[Coordinate]bool, coordinate Coordinate, minY int, maxY int) bool {
-	v, hasVisitedBefore := hasVisited[coordinate]
-
-	if hasVisitedBefore {
-		return v
-	}
-
-	if maxY < coordinate.Y {
-		hasVisited[coordinate] = true
-		return true
-	}
-
-	s, f := squares[coordinate]
-	if f {
-		if s == Clay {
-			hasVisited[coordinate] = false
-			return false
-		} else {
-			fmt.Println(coordinate)
-			panic("Shouldn't happen spreadLeft")
-		}
-	}
-
-	squares[coordinate] = Water
-	canSpread := spreadWater(squares, hasVisited, coordinate.Down(), minY, maxY)
-	if canSpread {
-		hasVisited[coordinate] = true
-		return true
-	}
-
-	canSpreadLeft := spreadLeft(squares, hasVisited, coordinate.Left(), minY, maxY)
-
-	if canSpreadLeft {
-		hasVisited[coordinate] = true
-		return true
-	}
-
-	hasVisited[coordinate] = false
-	return false
 }
 
 func addClay(squares map[Coordinate]square, x1 int, x2 int, y1 int, y2 int) {
