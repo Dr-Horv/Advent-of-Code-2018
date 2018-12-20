@@ -6,118 +6,6 @@ import (
 	"strings"
 )
 
-func opr(registers []int, a int, b int, c int, op func(i1 int, i2 int) int) {
-	registers[c] = op(registers[a], registers[b])
-}
-
-func opi(registers []int, a int, b int, c int, op func(i1 int, i2 int) int) {
-	registers[c] = op(registers[a], b)
-}
-
-func addr(registers []int, a int, b int, c int) {
-	opr(registers, a, b, c, func(i1 int, i2 int) int {
-		return i1 + i2
-	})
-}
-
-func addi(registers []int, a int, b int, c int) {
-	opi(registers, a, b, c, func(i1 int, i2 int) int {
-		return i1 + i2
-	})
-}
-
-func mulr(registers []int, a int, b int, c int) {
-	opr(registers, a, b, c, func(i1 int, i2 int) int {
-		return i1 * i2
-	})
-}
-
-func muli(registers []int, a int, b int, c int) {
-	opi(registers, a, b, c, func(i1 int, i2 int) int {
-		return i1 * i2
-	})
-}
-
-func banr(registers []int, a int, b int, c int) {
-	opr(registers, a, b, c, func(i1 int, i2 int) int {
-		return i1 & i2
-	})
-}
-
-func bani(registers []int, a int, b int, c int) {
-	opi(registers, a, b, c, func(i1 int, i2 int) int {
-		return i1 & i2
-	})
-}
-
-func borr(registers []int, a int, b int, c int) {
-	opr(registers, a, b, c, func(i1 int, i2 int) int {
-		return i1 | i2
-	})
-}
-
-func bori(registers []int, a int, b int, c int) {
-	opi(registers, a, b, c, func(i1 int, i2 int) int {
-		return i1 | i2
-	})
-}
-
-func setr(registers []int, a int, b int, c int) {
-	registers[c] = registers[a]
-}
-
-func seti(registers []int, a int, b int, c int) {
-	registers[c] = a
-}
-
-func gtir(registers []int, a int, b int, c int) {
-	test := 0
-	if a > registers[b] {
-		test = 1
-	}
-	registers[c] = test
-}
-
-func gtri(registers []int, a int, b int, c int) {
-	test := 0
-	if registers[a] > b {
-		test = 1
-	}
-	registers[c] = test
-}
-
-func gtrr(registers []int, a int, b int, c int) {
-	test := 0
-	if registers[a] > registers[b] {
-		test = 1
-	}
-	registers[c] = test
-}
-
-func eqir(registers []int, a int, b int, c int) {
-	test := 0
-	if a == registers[b] {
-		test = 1
-	}
-	registers[c] = test
-}
-
-func eqri(registers []int, a int, b int, c int) {
-	test := 0
-	if registers[a] == b {
-		test = 1
-	}
-	registers[c] = test
-}
-
-func eqrr(registers []int, a int, b int, c int) {
-	test := 0
-	if registers[a] == registers[b] {
-		test = 1
-	}
-	registers[c] = test
-}
-
 type sample struct {
 	Registers []int
 	Expected  []int
@@ -212,22 +100,22 @@ func Solve(lines []string, partOne bool) string {
 	}
 
 	operations := []*operation{
-		{addi},
-		{addr},
-		{mulr},
-		{muli},
-		{banr},
-		{bani},
-		{borr},
-		{bori},
-		{setr},
-		{seti},
-		{gtir},
-		{gtri},
-		{gtrr},
-		{eqir},
-		{eqri},
-		{eqrr}}
+		{pkg.Addi},
+		{pkg.Addr},
+		{pkg.Mulr},
+		{pkg.Muli},
+		{pkg.Banr},
+		{pkg.Bani},
+		{pkg.Borr},
+		{pkg.Bori},
+		{pkg.Setr},
+		{pkg.Seti},
+		{pkg.Gtir},
+		{pkg.Gtri},
+		{pkg.Gtrr},
+		{pkg.Eqir},
+		{pkg.Eqri},
+		{pkg.Eqrr}}
 
 	behaveLikeThree := 0
 	opMap := make(map[int]*operation)
