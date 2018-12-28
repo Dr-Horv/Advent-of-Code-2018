@@ -6,6 +6,7 @@ import (
 )
 
 type CavernType int
+
 const (
 	rocky CavernType = iota
 	narrow
@@ -13,6 +14,7 @@ const (
 )
 
 type equipment int
+
 const (
 	climbingGear equipment = iota
 	torch
@@ -20,8 +22,8 @@ const (
 )
 
 type State struct {
-	pos Coordinate
-	gear equipment
+	pos       Coordinate
+	gear      equipment
 	timeSpent int
 }
 
@@ -39,8 +41,8 @@ func Solve(lines []string, partOne bool) string {
 		extra = 800
 	}
 
-	for y := 0; y <= (target.Y+extra); y++ {
-		for x := 0; x <= (target.X+extra); x++ {
+	for y := 0; y <= (target.Y + extra); y++ {
+		for x := 0; x <= (target.X + extra); x++ {
 			c := Coordinate{X: x, Y: y}
 			erosionLevel := calculateErosionLevel(c, depth, erosionLevels, target)
 			erosionLevels[c] = erosionLevel
@@ -110,8 +112,6 @@ func printCavern(types map[Coordinate]CavernType, target Coordinate) {
 	fmt.Println(str)
 }
 
-
-
 func calculateErosionLevel(coordinate Coordinate, depth int, erosionLevels map[Coordinate]int, target Coordinate) int {
 	geologicIndex := calculateGeologicIndex(coordinate, erosionLevels, target)
 	return (geologicIndex + depth) % 20183
@@ -136,9 +136,5 @@ func calculateGeologicIndex(coordinate Coordinate, erosionLevels map[Coordinate]
 	}
 
 	return erosionLevels[coordinate.Left()] * erosionLevels[coordinate.Up()]
-
-
-
-
 
 }
